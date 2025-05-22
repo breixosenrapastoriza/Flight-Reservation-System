@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 public class Reservation {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false, unique = true)
+    private String id;
     
     @ManyToOne
     @JoinColumn(name = "flight_id", nullable = false)
@@ -32,9 +32,6 @@ public class Reservation {
     
     @Column(nullable = false)
     private String passengerEmail;
-    
-    @Column(name = "booking_reference", unique = true, nullable = false)
-    private String bookingReference;
     
     @Column(nullable = false)
     private Integer passengers;

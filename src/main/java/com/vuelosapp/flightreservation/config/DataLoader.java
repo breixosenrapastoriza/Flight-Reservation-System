@@ -85,14 +85,14 @@ public class DataLoader {
         if (userRepository.count() == 0) {
             // Usuario normal
             User user1 = new User();
-            user1.setUsername("usuario1@example.com");
+            user1.setUsername("usuario1");
             user1.setEmail("usuario1@example.com");
-            user1.setPassword(passwordEncoder.encode("password123"));
+            user1.setPassword(passwordEncoder.encode("usuario1123"));
             user1.setRole("USER");
             
             // Usuario administrador
             User admin = new User();
-            admin.setUsername("admin@example.com");
+            admin.setUsername("admin");
             admin.setEmail("admin@example.com");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole("ADMIN");
@@ -141,8 +141,8 @@ public class DataLoader {
         reservation.setPassengerEmail(passengerEmail);
         reservation.setPassengers(passengers);
         reservation.setTotalPrice(flight.getPrice().multiply(BigDecimal.valueOf(passengers)));
+        reservation.setId("RES" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         reservation.setBookingDate(LocalDateTime.now());
-        reservation.setBookingReference("RES" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         reservation.setStatus(Reservation.ReservationStatus.CONFIRMED);
         
         // Actualizar asientos disponibles

@@ -28,6 +28,10 @@ public class UserService implements UserDetailsService {
             throw new RuntimeException("El correo ya está registrado");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Asignar rol USER por defecto si no se especifica
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("USER");
+        }
         return userRepository.save(user);
     }
 

@@ -1,4 +1,4 @@
-package com.vuelosapp.flightreservation.exception;
+package com.vuelosapp.flightreservation.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

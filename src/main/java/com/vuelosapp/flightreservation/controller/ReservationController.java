@@ -28,11 +28,11 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.createReservation(request));
     }
 
-    @GetMapping("/{reference}")
-    @Operation(summary = "Obtener los detalles de una reserva por su número de referencia")
-    public ResponseEntity<ReservationDTO> getReservationByReference(
-            @PathVariable String reference) {
-        return ResponseEntity.ok(reservationService.getReservationByReference(reference));
+    @GetMapping("/{reservationId}")
+    @Operation(summary = "Obtener los detalles de una reserva por su ID")
+    public ResponseEntity<ReservationDTO> getReservationById(
+            @PathVariable String reservationId) {
+        return ResponseEntity.ok(reservationService.getReservationById(reservationId));
     }
 
     @GetMapping("/my-reservations")

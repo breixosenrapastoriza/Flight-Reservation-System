@@ -11,12 +11,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReservationDTO {
-    private Long id;
+    private String id;
     private Long flightId;
     private Long userId;
     private String passengerName;
     private String passengerEmail;
-    private String bookingReference;
     private Integer passengers;
     private BigDecimal totalPrice;
     private LocalDateTime bookingDate;

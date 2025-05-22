@@ -62,13 +62,13 @@ public class ReservationService {
         reservation.setTotalPrice(flight.getPrice().multiply(BigDecimal.valueOf(request.getPassengers())));
         reservation.setBookingDate(LocalDateTime.now());
         
-        // Generar número de referencia único
-        String bookingReference;
+        // Generar ID único
+        String id;
         do {
-            bookingReference = "RES" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        } while (reservationRepository.existsByBookingReference(bookingReference));
+            id = "RES" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        } while (reservationRepository.existsById(id));
         
-        reservation.setBookingReference(bookingReference);
+        reservation.setId(id);
         
         // Actualizar asientos disponibles
         flight.setAvailableSeats(flight.getAvailableSeats() - request.getPassengers());
@@ -76,13 +76,13 @@ public class ReservationService {
         
         // Guardar la reserva
         Reservation savedReservation = reservationRepository.save(reservation);
-        log.info("Reserva creada con referencia: {}", bookingReference);
+        log.info("Reserva creada con ID: {}", id);
         
         return convertToDTO(savedReservation);
     }
     
-    public ReservationDTO getReservationByReference(String reference) {
-        Reservation reservation = reservationRepository.findByBookingReference(reference)
+    public ReservationDTO getReservationById(String reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
             .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
         return convertToDTO(reservation);
     }
@@ -91,8 +91,10 @@ public class ReservationService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
+        // Primero intenta buscar por email, luego por username
         User user = userRepository.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+            .or(() -> userRepository.findByUsername(username))
+            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
             
         return reservationRepository.findByUser(user).stream()
             .map(this::convertToDTO)
@@ -108,9 +110,12 @@ public class ReservationService {
             .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
             
         // Verificar que el usuario es el propietario de la reserva o es ADMIN
-        if (!reservation.getUser().getEmail().equals(username) && 
-            !authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+        boolean isOwner = reservation.getUser().getEmail().equals(username) || 
+                         reservation.getUser().getUsername().equals(username);
+        boolean isAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            
+        if (!isOwner && !isAdmin) {
             throw new RuntimeException("No autorizado para cancelar esta reserva");
         }
         

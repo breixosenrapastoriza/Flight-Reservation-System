@@ -1,7 +1,7 @@
 package com.vuelosapp.flightreservation.controller;
 
 import com.vuelosapp.flightreservation.entity.User;
-import com.vuelosapp.flightreservation.service.JwtUtil;
+import com.vuelosapp.flightreservation.security.JwtUtil;
 import com.vuelosapp.flightreservation.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
