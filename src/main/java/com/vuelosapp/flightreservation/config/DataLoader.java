@@ -31,8 +31,11 @@ public class DataLoader {
             Airport barcelona = new Airport(null, "BCN", "Barcelona-El Prat", "Barcelona", "Spain");
             Airport paris = new Airport(null, "CDG", "Charles de Gaulle", "Paris", "France");
             Airport london = new Airport(null, "LHR", "Heathrow", "London", "UK");
+            Airport berlin = new Airport(null, "BER", "Berlin Brandenburg", "Berlin", "Germany");
+            Airport roma = new Airport(null, "FCO", "Leonardo da Vinci-Fiumicino", "Rome", "Italy");
+            Airport newyork = new Airport(null, "JFK", "John F. Kennedy", "New York", "USA");
             
-            List<Airport> airports = airportRepository.saveAll(List.of(madrid, barcelona, paris, london));
+            List<Airport> airports = airportRepository.saveAll(List.of(madrid, barcelona, paris, london, berlin, roma, newyork));
             
             // Cargar vuelos de ejemplo
             LocalDateTime now = LocalDateTime.now();
@@ -76,19 +79,58 @@ public class DataLoader {
                 220, 50, new BigDecimal("129.99"), Flight.FlightStatus.SCHEDULED
             );
             
-            flightRepository.saveAll(List.of(flight1, flight2, flight3, flight4, flight5));
+            // Vuelos adicionales para probar validaciones
+            Flight flight6 = new Flight(
+                null, "LH4321", berlin, roma,
+                now.plusDays(4).withHour(12).withMinute(0),
+                now.plusDays(4).withHour(14).withMinute(15),
+                180, 10, new BigDecimal("199.99"), Flight.FlightStatus.SCHEDULED
+            );
+            
+            // Vuelo con pocos asientos disponibles
+            Flight flight7 = new Flight(
+                null, "AZ789", roma, madrid,
+                now.plusDays(2).withHour(16).withMinute(30),
+                now.plusDays(2).withHour(18).withMinute(45),
+                5, 1, new BigDecimal("89.99"), Flight.FlightStatus.SCHEDULED
+            );
+            
+            // Vuelo de larga distancia con precio alto
+            Flight flight8 = new Flight(
+                null, "BA9876", london, newyork,
+                now.plusDays(7).withHour(10).withMinute(0),
+                now.plusDays(7).withHour(14).withMinute(30), // Hora local de NY
+                300, 250, new BigDecimal("899.99"), Flight.FlightStatus.SCHEDULED
+            );
+            
+            // Vuelo con muchos asientos disponibles
+            Flight flight9 = new Flight(
+                null, "IB3456", madrid, berlin,
+                now.plusDays(3).withHour(7).withMinute(0),
+                now.plusDays(3).withHour(10).withMinute(30),
+                400, 400, new BigDecimal("149.99"), Flight.FlightStatus.SCHEDULED
+            );
+            
+            flightRepository.saveAll(List.of(flight1, flight2, flight3, flight4, flight5, flight6, flight7, flight8, flight9));
             
             System.out.println("Datos de prueba de aeropuertos y vuelos cargados correctamente");
         }
         
         // Cargar usuarios de ejemplo si no existen
         if (userRepository.count() == 0) {
-            // Usuario normal
+            // Usuario normal 1
             User user1 = new User();
             user1.setUsername("usuario1");
             user1.setEmail("usuario1@example.com");
             user1.setPassword(passwordEncoder.encode("usuario1123"));
             user1.setRole("USER");
+            
+            // Usuario normal 2 (para probar múltiples reservas)
+            User user2 = new User();
+            user2.setUsername("viajerofrecuente");
+            user2.setEmail("viajero@ejemplo.com");
+            user2.setPassword(passwordEncoder.encode("viaje1234"));
+            user2.setRole("USER");
             
             // Usuario administrador
             User admin = new User();
@@ -97,7 +139,7 @@ public class DataLoader {
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole("ADMIN");
             
-            userRepository.saveAll(List.of(user1, admin));
+            userRepository.saveAll(List.of(user1, user2, admin));
             System.out.println("Usuarios de prueba creados correctamente");
         }
         
@@ -106,21 +148,35 @@ public class DataLoader {
             // Obtener usuarios y vuelos existentes
             User user1 = userRepository.findByEmail("usuario1@example.com")
                 .orElseThrow(() -> new RuntimeException("Usuario de prueba no encontrado"));
-                
+            User user2 = userRepository.findByEmail("viajero@ejemplo.com")
+                .orElseThrow(() -> new RuntimeException("Usuario viajero no encontrado"));
+            
             List<Flight> flights = flightRepository.findAll();
             if (!flights.isEmpty()) {
-                // Crear algunas reservas para el primer vuelo
-                if (flights.size() > 0) {
-                    Flight flight1 = flights.get(0);
-                    createSampleReservation(user1, flight1, "Juan Pérez", "juan.perez@example.com", 2);
-                    createSampleReservation(user1, flight1, "Ana García", "ana.garcia@example.com", 1);
-                }
+                // Reservas para el primer vuelo (Madrid-Barcelona)
+                Flight flight1 = flights.get(0);
+                createSampleReservation(user1, flight1, "Juan Pérez", "juan.perez@example.com", 2);
+                createSampleReservation(user1, flight1, "Ana García", "ana.garcia@example.com", 1);
                 
-                // Crear reservas para otro vuelo
-                if (flights.size() > 3) {
-                    Flight flight4 = flights.get(3);
-                    createSampleReservation(user1, flight4, "Carlos López", "carlos.lopez@example.com", 3);
-                }
+                // Reservas para el vuelo a París
+                Flight flight4 = flights.get(3);
+                createSampleReservation(user1, flight4, "Carlos López", "carlos.lopez@example.com", 3);
+                
+                // Reserva para el vuelo a Roma (pocos asientos disponibles)
+                Flight flight6 = flights.get(5);
+                createSampleReservation(user2, flight6, "María Rodríguez", "maria.rodriguez@ejemplo.com", 4);
+                
+                // Reserva para el vuelo con un solo asiento disponible
+                Flight flight7 = flights.get(6);
+                createSampleReservation(user2, flight7, "Último Pasajero", "ultimo@ejemplo.com", 1);
+                
+                // Varias reservas para el usuario viajero frecuente
+                Flight flight8 = flights.get(7); // Vuelo a Nueva York
+                createSampleReservation(user2, flight8, "Viajero Frecuente", "viajero@ejemplo.com", 2);
+                
+                // Otra reserva para el mismo usuario en un vuelo diferente
+                Flight flight9 = flights.get(8); // Vuelo a Berlín
+                createSampleReservation(user2, flight9, "Viajero Frecuente", "viajero@ejemplo.com", 1);
                 
                 System.out.println("Reservas de prueba creadas correctamente");
             }
