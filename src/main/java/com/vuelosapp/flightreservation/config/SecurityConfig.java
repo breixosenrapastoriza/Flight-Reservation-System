@@ -1,9 +1,11 @@
 package com.vuelosapp.flightreservation.config;
 
 import com.vuelosapp.flightreservation.security.JwtRequestFilter;
+import com.vuelosapp.flightreservation.security.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,6 +14,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -21,6 +25,7 @@ import java.util.Collections;
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,7 +62,7 @@ public class SecurityConfig {
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
 
-        // Añadir filtro JWT
+        // Añadir filtros
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         // Configuración de cabeceras
@@ -65,7 +70,7 @@ public class SecurityConfig {
             .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
         );
 
-        // Permitir solicitudes de opciones (preflight) para CORS
+        // Configuración CORS
         http.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
             config.setAllowedOrigins(Collections.singletonList("*"));
@@ -75,5 +80,14 @@ public class SecurityConfig {
         }));
 
         return http.build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<RateLimitFilter> rateLimitFilterRegistration() {
+        FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(rateLimitFilter);
+        registration.addUrlPatterns("/auth/login");
+        registration.setOrder(1); // Alta prioridad
+        return registration;
     }
 }

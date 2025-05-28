@@ -38,6 +38,22 @@ public class UserService implements UserDetailsService {
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+    
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+    
+    /**
+     * Actualiza la información de un usuario existente.
+     * @param user El usuario con la información actualizada
+     * @return El usuario guardado
+     */
+    public User saveUser(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("El usuario no puede ser nulo");
+        }
+        return userRepository.save(user);
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) {
